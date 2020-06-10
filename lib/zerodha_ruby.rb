@@ -6,7 +6,6 @@ module Zerodha
   class TokenException < Error; end
   class Client
 
-
     class Partay
       include HTTParty
       base_uri  "https://api.kite.trade"
@@ -22,6 +21,10 @@ module Zerodha
       def get(path, params = {})
         Partay.get(path, body: params, headers: {"Authorization" => @auth_token})
       end
+
+      def post(path, params = {})
+        Partay.post(path, body: params, headers: {"Authorization" => @auth_token})
+      end
     end
 
     def initialize(api_key:, api_secret: nil, request_token: nil, access_token: nil)
@@ -32,6 +35,12 @@ module Zerodha
       @access_token || get_access_token
     end
 
+    def set_request_token(rt)
+      @request_token = rt
+      get_access_token
+    end
+
+
     def get(path, params = {})
       d = api_client.get(path, params).parsed_response
       if d["error_type"] == "TokenException"
@@ -41,12 +50,20 @@ module Zerodha
       end
     end
 
+    def post(path, params)
+      api_client.post(path, params)
+    end
+
     def instruments
       r = get("/instruments")
     end
 
+    def place_order(variety, order_data)
+      post("/orders/#{variety}", order_data)
+    end
+
     def historical(instrument_token, interval, from, to, continuous = false, oi = false)
-      get("/instruments/historical/#{instrument_token}/#{interval}?from=#{from}&to=#{to}&continuous=continuous&oi=oi")["data"]["candles"]
+      d = get("/instruments/historical/#{instrument_token}/#{interval}?from=#{from}&to=#{to}&continuous=continuous&oi=oi")["data"]["candles"]
     end
 
     def quotes(trading_symbol)
@@ -82,17 +99,20 @@ module Zerodha
 
     def get_access_token
       r = Partay.post("/session/token", body: {api_key: api_key, request_token: request_token, checksum: checksum})
-      ap r
       if r["data"]
         @data ||= r["data"]
         @access_token = @data["access_token"]
       else
-        raise
+        raise TokenException
       end
     end
 
     def checksum
-      Digest::SHA256.hexdigest api_key + request_token + api_secret
+      begin
+        Digest::SHA256.hexdigest api_key + request_token + api_secret
+      rescue
+        raise TokenException
+      end
     end
 
   end
