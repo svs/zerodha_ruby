@@ -36,7 +36,9 @@ module Zerodha
     end
 
     def set_request_token(rt)
+      ap "RESET REQUEST TOKEN"
       @request_token = rt
+      @access_token = nil
       get_access_token
     end
 
@@ -98,6 +100,7 @@ module Zerodha
 
 
     def get_access_token
+      ap "Getting ACCESS TOKEN"
       r = Partay.post("/session/token", body: {api_key: api_key, request_token: request_token, checksum: checksum})
       if r["data"]
         @data ||= r["data"]
@@ -108,6 +111,7 @@ module Zerodha
     end
 
     def checksum
+      ap "CHECKSUM for #{api_key} #{request_token} #{api_secret}"
       begin
         Digest::SHA256.hexdigest api_key + request_token + api_secret
       rescue
