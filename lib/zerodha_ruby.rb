@@ -27,12 +27,16 @@ module Zerodha
       end
     end
 
-    def initialize(api_key:, api_secret: nil, request_token: nil, access_token: nil)
-      @api_key, @api_secret, @request_token, @access_token = api_key, api_secret, request_token, access_token
+    def initialize(api_key:, api_secret: nil, request_token: nil, access_token: nil, refresh_token: nil)
+      @api_key, @api_secret, @request_token, @access_token, @refresh_token = api_key, api_secret, request_token, access_token, refresh_token
     end
 
     def access_token
       @access_token || get_access_token
+    end
+
+    def refresh_token
+      @refresh_token
     end
 
     def set_request_token(rt)
@@ -44,8 +48,9 @@ module Zerodha
 
 
     def get(path, params = {})
-      d = api_client.get(path, params).parsed_response
-      if d["error_type"] == "TokenException"
+      d = api_client.get(path, params)
+      d = d.parsed_response
+      if d.is_a?(Hash) && d["error_type"] == "TokenException"
         raise TokenException
       else
         d
@@ -64,8 +69,9 @@ module Zerodha
       post("/orders/#{variety}", order_data)
     end
 
-    def historical(instrument_token, interval, from, to, continuous = false, oi = false)
-      d = get("/instruments/historical/#{instrument_token}/#{interval}?from=#{from}&to=#{to}&continuous=continuous&oi=oi")["data"]["candles"]
+    def historical(instrument_token, interval, from, to, continuous = 1, oi = 0)
+      d = get("/instruments/historical/#{instrument_token}/#{interval}?from=#{from}&to=#{to}&continuous=#{continuous}&oi=#{oi}")
+      d["data"]["candles"]
     end
 
     def quotes(trading_symbol)
@@ -102,10 +108,14 @@ module Zerodha
     def get_access_token
       ap "Getting ACCESS TOKEN"
       r = Partay.post("/session/token", body: {api_key: api_key, request_token: request_token, checksum: checksum})
+
       if r["data"]
+        ap r["data"]
         @data ||= r["data"]
+        @refresh_token = @data["refresh_token"]
         @access_token = @data["access_token"]
       else
+        ap r
         raise TokenException
       end
     end
@@ -114,7 +124,7 @@ module Zerodha
       ap "CHECKSUM for #{api_key} #{request_token} #{api_secret}"
       begin
         Digest::SHA256.hexdigest api_key + request_token + api_secret
-      rescue
+      rescue Exception => e
         raise TokenException
       end
     end
