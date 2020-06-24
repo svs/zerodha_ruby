@@ -4,6 +4,7 @@ require "httparty"
 module Zerodha
   class Error < StandardError; end
   class TokenException < Error; end
+  class TokenException < Error; end
   class Client
 
     class Partay
@@ -51,7 +52,8 @@ module Zerodha
       d = api_client.get(path, params)
       d = d.parsed_response
       if d.is_a?(Hash) && d["error_type"] == "TokenException"
-        raise TokenException
+        @access_token = refresh_access_token
+        d = api_client.get(path, params).parsed_response
       else
         d
       end
@@ -108,16 +110,30 @@ module Zerodha
     def get_access_token
       ap "Getting ACCESS TOKEN"
       r = Partay.post("/session/token", body: {api_key: api_key, request_token: request_token, checksum: checksum})
-
       if r["data"]
         ap r["data"]
         @data ||= r["data"]
         @refresh_token = @data["refresh_token"]
         @access_token = @data["access_token"]
       else
-        ap r
+        refresh_access_token
+      end
+      return @access_token
+    end
+
+    def refresh_access_token
+      ap "getting REFRESH TOKEN"
+      r = Partay.post("/session/refresh_token", body: {api_key: api_key, refresh_token: refresh_token, checksum: refresh_checksum})
+      ap r
+      if r["data"]
+        ap r["data"]
+        @data ||= r["data"]
+        @refresh_token = @data["refresh_token"]
+        @access_token = @data["access_token"]
+      else
         raise TokenException
       end
+      return @access_token
     end
 
     def checksum
@@ -129,7 +145,16 @@ module Zerodha
       end
     end
 
+    def refresh_checksum
+      ap "CHECKSUM for #{api_key} #{refresh_token} #{api_secret}"
+      begin
+        Digest::SHA256.hexdigest api_key + refresh_token + api_secret
+      rescue Exception => e
+        raise TokenException
+      end
+    end
   end
+
 
 
 end
