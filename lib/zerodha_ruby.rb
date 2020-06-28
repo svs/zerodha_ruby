@@ -107,8 +107,10 @@ module Zerodha
     end
 
 
+
     def get_access_token
-      ap "Getting ACCESS TOKEN"
+      ap "Getting ACCESS TOKEN with checksum #{checksum}"
+
       r = Partay.post("/session/token", body: {api_key: api_key, request_token: request_token, checksum: checksum})
       if r["data"]
         ap r["data"]
@@ -122,7 +124,9 @@ module Zerodha
     end
 
     def refresh_access_token
-      ap "getting REFRESH TOKEN"
+      ap "getting REFRESH TOKEN with #{refresh_checksum}"
+      @api_client = nil
+      @access_token = nil
       r = Partay.post("/session/refresh_token", body: {api_key: api_key, refresh_token: refresh_token, checksum: refresh_checksum})
       ap r
       if r["data"]
