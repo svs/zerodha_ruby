@@ -82,6 +82,14 @@ module Zerodha
       d
     end
 
+    def orders(order_id = nil)
+      if order_id
+        get("/orders/#{order_id}")["data"]
+      else
+        get("/orders")["data"]
+      end
+    end
+
     def trades
       d = get("/trades")["data"]
     end
