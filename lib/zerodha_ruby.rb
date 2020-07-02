@@ -3,8 +3,8 @@ require "digest"
 require "httparty"
 module Zerodha
   class Error < StandardError; end
-  class TokenException < Error; end
-  class TokenException < Error; end
+  class AccessTokenException < Error; end
+  class RefreshTokenException < Error; end
   class Client
 
     class Partay
@@ -46,6 +46,7 @@ module Zerodha
       @access_token = nil
       get_access_token
     end
+
 
 
     def get(path, params = {})
@@ -106,6 +107,24 @@ module Zerodha
       get("/portfolio/positions")['data']
     end
 
+    def refresh_access_token
+      ap "getting REFRESH TOKEN with #{refresh_checksum}"
+      @api_client = nil
+      @access_token = nil
+      r = Partay.post("/session/refresh_token", body: {api_key: api_key, refresh_token: refresh_token, checksum: refresh_checksum})
+      ap r
+      if r["data"]
+        ap r["data"]
+        @data ||= r["data"]
+        @refresh_token = @data["refresh_token"]
+        @access_token = @data["access_token"]
+      else
+        raise RefreshTokenException
+      end
+      return @access_token
+    end
+
+
     private
 
     attr_reader :api_key, :api_secret, :request_token, :data
@@ -126,34 +145,18 @@ module Zerodha
         @refresh_token = @data["refresh_token"]
         @access_token = @data["access_token"]
       else
-        refresh_access_token
+        raise AccessTokenException
       end
       return @access_token
     end
 
-    def refresh_access_token
-      ap "getting REFRESH TOKEN with #{refresh_checksum}"
-      @api_client = nil
-      @access_token = nil
-      r = Partay.post("/session/refresh_token", body: {api_key: api_key, refresh_token: refresh_token, checksum: refresh_checksum})
-      ap r
-      if r["data"]
-        ap r["data"]
-        @data ||= r["data"]
-        @refresh_token = @data["refresh_token"]
-        @access_token = @data["access_token"]
-      else
-        raise TokenException
-      end
-      return @access_token
-    end
 
     def checksum
       ap "CHECKSUM for #{api_key} #{request_token} #{api_secret}"
       begin
         Digest::SHA256.hexdigest api_key + request_token + api_secret
       rescue Exception => e
-        raise TokenException
+        raise AccessTokenException
       end
     end
 
@@ -162,7 +165,7 @@ module Zerodha
       begin
         Digest::SHA256.hexdigest api_key + refresh_token + api_secret
       rescue Exception => e
-        raise TokenException
+        raise RefreshTokenException
       end
     end
   end
