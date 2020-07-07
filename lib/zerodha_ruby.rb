@@ -68,11 +68,16 @@ module Zerodha
       r = get("/instruments")
     end
 
+    def margins(which="futures")
+      get("/margins/#{which}")
+    end
+
     def place_order(variety, order_data)
       post("/orders/#{variety}", order_data)
     end
 
     def historical(instrument_token, interval, from, to, continuous = 1, oi = 0)
+      ap instrument_token
       d = get("/instruments/historical/#{instrument_token}/#{interval}?from=#{from}&to=#{to}&continuous=#{continuous}&oi=#{oi}")
       d["data"]["candles"]
     end
