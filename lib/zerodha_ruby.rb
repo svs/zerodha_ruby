@@ -53,8 +53,7 @@ module Zerodha
       d = api_client.get(path, params)
       d = d.parsed_response
       if d.is_a?(Hash) && d["error_type"] == "TokenException"
-        @access_token = refresh_access_token
-        d = api_client.get(path, params).parsed_response
+        raise AccessTokenException
       else
         d
       end
