@@ -41,7 +41,7 @@ module Zerodha
     end
 
     def set_request_token(rt)
-      ap "RESET REQUEST TOKEN"
+      #ap "RESET REQUEST TOKEN"
       @request_token = rt
       @access_token = nil
       get_access_token
@@ -76,13 +76,13 @@ module Zerodha
     end
 
     def historical(instrument_token, interval, from, to, continuous = 1, oi = 0)
-      ap instrument_token
+      # ap instrument_token
       d = get("/instruments/historical/#{instrument_token}/#{interval}?from=#{from}&to=#{to}&continuous=#{continuous}&oi=#{oi}")
       d["data"]["candles"]
     end
 
     def quotes(trading_symbol)
-      ap trading_symbol
+      #ap trading_symbol
       d = get("/quote?i=#{trading_symbol}")
       d
     end
@@ -112,11 +112,11 @@ module Zerodha
     end
 
     def refresh_access_token
-      ap "getting REFRESH TOKEN with #{refresh_checksum}"
+      #ap "getting REFRESH TOKEN with #{refresh_checksum}"
       @api_client = nil
       @access_token = nil
       r = Partay.post("/session/refresh_token", body: {api_key: api_key, refresh_token: refresh_token, checksum: refresh_checksum})
-      ap r
+      #ap r
       if r["data"]
         ap r["data"]
         @data ||= r["data"]
@@ -140,11 +140,11 @@ module Zerodha
 
 
     def get_access_token
-      ap "Getting ACCESS TOKEN with checksum #{checksum}"
+      #ap "Getting ACCESS TOKEN with checksum #{checksum}"
 
       r = Partay.post("/session/token", body: {api_key: api_key, request_token: request_token, checksum: checksum})
       if r["data"]
-        ap r["data"]
+        #ap r["data"]
         @data ||= r["data"]
         @refresh_token = @data["refresh_token"]
         @access_token = @data["access_token"]
@@ -156,7 +156,7 @@ module Zerodha
 
 
     def checksum
-      ap "CHECKSUM for #{api_key} #{request_token} #{api_secret}"
+      #ap "CHECKSUM for #{api_key} #{request_token} #{api_secret}"
       begin
         Digest::SHA256.hexdigest api_key + request_token + api_secret
       rescue Exception => e
@@ -165,7 +165,7 @@ module Zerodha
     end
 
     def refresh_checksum
-      ap "CHECKSUM for #{api_key} #{refresh_token} #{api_secret}"
+      #ap "CHECKSUM for #{api_key} #{refresh_token} #{api_secret}"
       begin
         Digest::SHA256.hexdigest api_key + refresh_token + api_secret
       rescue Exception => e
