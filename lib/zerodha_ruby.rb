@@ -81,10 +81,10 @@ module Zerodha
       d["data"]["candles"]
     end
 
-    def quotes(trading_symbol)
+    def quotes(exchange_token)
       #ap trading_symbol
-      d = get("/quote?i=#{trading_symbol}")
-      d
+      d = get("/quote?i=#{exchange_token}")
+      d["data"]
     end
 
     def orders(order_id = nil)
