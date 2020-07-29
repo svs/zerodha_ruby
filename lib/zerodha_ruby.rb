@@ -22,7 +22,11 @@ module Zerodha
       def get(path, params = {})
         ap path
         ap params
-        Partay.get(path, body: params, headers: {"Authorization" => @auth_token})
+        Partay.get(path, body: params, headers: {"Authorization" => @auth_token}).tap{|d|
+          if d["status"] == "error"
+            ap d
+          end
+        }
       end
 
       def post(path, params = {})
