@@ -20,6 +20,8 @@ module Zerodha
       end
 
       def get(path, params = {})
+        ap path
+        ap params
         Partay.get(path, body: params, headers: {"Authorization" => @auth_token})
       end
 
@@ -77,13 +79,16 @@ module Zerodha
 
     def historical(instrument_token, interval, from, to, continuous = 1, oi = 0)
       # ap instrument_token
+
       d = get("/instruments/historical/#{instrument_token}/#{interval}?from=#{from}&to=#{to}&continuous=#{continuous}&oi=#{oi}")
+      ap d unless d["data"]
       d["data"]["candles"]
     end
 
     def quotes(exchange_token)
       #ap trading_symbol
       d = get("/quote?i=#{exchange_token}")
+      ap d
       d["data"]
     end
 
@@ -96,7 +101,14 @@ module Zerodha
     end
 
     def trades
-      d = get("/trades")["data"]
+      r = get("/trades")
+      d = r["data"]
+      if !d
+        ap r
+        nil
+      else
+        d
+      end
     end
 
     def pending_orders
@@ -112,7 +124,7 @@ module Zerodha
     end
 
     def refresh_access_token
-      #ap "getting REFRESH TOKEN with #{refresh_checksum}"
+      ap "getting REFRESH TOKEN with #{refresh_checksum}"
       @api_client = nil
       @access_token = nil
       r = Partay.post("/session/refresh_token", body: {api_key: api_key, refresh_token: refresh_token, checksum: refresh_checksum})
@@ -140,15 +152,16 @@ module Zerodha
 
 
     def get_access_token
-      #ap "Getting ACCESS TOKEN with checksum #{checksum}"
+      ap "Getting ACCESS TOKEN with checksum #{checksum}"
 
       r = Partay.post("/session/token", body: {api_key: api_key, request_token: request_token, checksum: checksum})
       if r["data"]
-        #ap r["data"]
+        ap r["data"]
         @data ||= r["data"]
         @refresh_token = @data["refresh_token"]
         @access_token = @data["access_token"]
       else
+        ap r
         raise AccessTokenException
       end
       return @access_token
@@ -156,7 +169,7 @@ module Zerodha
 
 
     def checksum
-      #ap "CHECKSUM for #{api_key} #{request_token} #{api_secret}"
+      ap "CHECKSUM for #{api_key} #{request_token} #{api_secret}"
       begin
         Digest::SHA256.hexdigest api_key + request_token + api_secret
       rescue Exception => e
@@ -165,7 +178,7 @@ module Zerodha
     end
 
     def refresh_checksum
-      #ap "CHECKSUM for #{api_key} #{refresh_token} #{api_secret}"
+      ap "CHECKSUM for #{api_key} #{refresh_token} #{api_secret}"
       begin
         Digest::SHA256.hexdigest api_key + refresh_token + api_secret
       rescue Exception => e
