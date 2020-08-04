@@ -90,9 +90,7 @@ module Zerodha
     end
 
     def quotes(exchange_token)
-      #ap trading_symbol
       d = get("/quote?i=#{exchange_token}")
-      ap d
       d["data"]
     end
 
