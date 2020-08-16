@@ -22,8 +22,9 @@ module Zerodha
       def get(path, params = {})
         ap path
         ap params
+        ap @auth_token
         Partay.get(path, body: params, headers: {"Authorization" => @auth_token}).tap{|d|
-          if d["status"] == "error"
+          if d.is_a?(Hash) && d["status"] == "error"
             ap d
           end
         }
@@ -71,9 +72,7 @@ module Zerodha
     end
 
     def instruments
-      r = get("/instruments")
-      #ap r
-      r
+      r = get("/instruments/NSE")
     end
 
     def margins(which="futures")
