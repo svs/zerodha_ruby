@@ -30,8 +30,8 @@ module Zerodha
         }
       end
 
-      def post(path, params = {})
-        Partay.post(path, body: params, headers: {"Authorization" => @auth_token})
+      def post(path, params = {}, headers={})
+        Partay.post(path, body: params, headers: headers.merge({"Authorization" => @auth_token}))
       end
     end
 
@@ -67,12 +67,16 @@ module Zerodha
       end
     end
 
-    def post(path, params)
-      api_client.post(path, params)
+    def post(path, params, headers = {})
+      api_client.post(path, params, headers)
     end
 
     def instruments
       r = get("/instruments/NSE")
+    end
+
+    def margin(data)
+      post("/margins/orders", [data].to_json, {'Content-Type' => "application/json"})
     end
 
     def margins(which="futures")
