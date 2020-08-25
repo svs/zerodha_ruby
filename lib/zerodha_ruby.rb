@@ -96,7 +96,9 @@ module Zerodha
     end
 
     def quotes(exchange_token)
-      d = get("/quote?i=#{exchange_token}")
+      qs = Array(exchange_token).map{|t| "i=#{t}"}.join("&")
+      ap qs
+      d = get("/quote?#{qs}")
       d["data"]
     end
 
