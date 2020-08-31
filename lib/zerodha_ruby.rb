@@ -79,6 +79,11 @@ module Zerodha
       post("/margins/orders", [data].to_json, {'Content-Type' => "application/json"})
     end
 
+    def user_margin()
+      get("/user/margins")
+
+    end
+
     def margins(which="futures")
       get("/margins/#{which}")
     end
