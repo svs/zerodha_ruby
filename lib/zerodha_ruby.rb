@@ -72,7 +72,7 @@ module Zerodha
     end
 
     def instruments
-      r = get("/instruments/NSE")
+      r = get("/instruments")
     end
 
     def margin(data)
