@@ -138,6 +138,10 @@ module Zerodha
       get("/portfolio/positions")['data']
     end
 
+    def holdings
+      get("/portfolio/holdings")['data']
+    end
+
     def refresh_access_token
       #ap "getting REFRESH TOKEN with #{refresh_checksum}"
       @api_client = nil
