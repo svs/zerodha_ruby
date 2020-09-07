@@ -100,12 +100,17 @@ module Zerodha
       d["data"]["candles"]
     end
 
-    def quotes(exchange_token)
+    def quotes(exchange_token, ohlc = false)
       qs = Array(exchange_token).map{|t| "i=#{t}"}.join("&")
       ap qs
-      d = get("/quote?#{qs}")
+      if ohlc
+        d = get("/quote/ohlc?#{qs}")
+      else
+        d = get("/quote?#{qs}")
+      end
       d["data"]
     end
+
 
     def orders(order_id = nil)
       if order_id
